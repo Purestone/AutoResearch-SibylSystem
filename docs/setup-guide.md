@@ -4,7 +4,7 @@ This document is the **single source of truth** for configuring Sibyl Research S
 
 **Approach**: Check the current state first, then only fix what's missing. Ask the user for information you cannot detect automatically (GPU server IP, username, etc.). Report progress after each step.
 
-**Important setup preference**: For MCP servers, prefer `claude mcp add --scope local ...` unless the user explicitly wants a broader scope. Manual JSON editing is a fallback only for users already managing Claude Code MCP configs that way.
+**Important setup preference**: For MCP servers, add entries to the project `.mcp.json` file for repo-scoped config. Manual JSON editing is the standard approach with opencode.
 
 ---
 
@@ -57,7 +57,7 @@ python3.12 -m venv .venv   # preferred
 **Check**:
 ```bash
 # Check if already configured
-claude mcp list 2>/dev/null | grep ssh-mcp-server
+# Check .mcp.json contains ssh-mcp-server
 ```
 
 **If not configured — ask the user**:
@@ -68,15 +68,15 @@ claude mcp list 2>/dev/null | grep ssh-mcp-server
 
 **Configure** (preferred):
 ```bash
-claude mcp add --scope local ssh-mcp-server -- npx -y @fangjunjie/ssh-mcp-server \
+# Add to .mcp.json: ssh-mcp-server entry (see snippet below)
   --host <GPU_HOST> --port <SSH_PORT> --username <SSH_USER> \
   --privateKey <SSH_KEY_PATH>
 ```
 
-Use `--scope user` instead only if the user wants the same SSH MCP entry available across multiple repos.
+To share MCP config across projects, move the entry to `~/.mcp.json`.
 
 **Manual JSON fallback**:
-If the user already manages MCP servers via JSON, update the existing Claude Code MCP config instead of creating a second source of truth. Common locations are project `.mcp.json` or older user-level `~/.mcp.json`.
+Add the entry directly to the project `.mcp.json`, or to `~/.mcp.json` for user-level config.
 
 ```json
 {
@@ -95,7 +95,7 @@ If the user already manages MCP servers via JSON, update the existing Claude Cod
 
 **Critical**: The server name **must** be `"ssh-mcp-server"`. Agent prompts reference `mcp__ssh-mcp-server__execute-command`.
 
-**Verify**: After configuring, the user needs to restart Claude Code for the MCP server to load. Then:
+**Verify**: After configuring, restart opencode for the MCP server to load. Then:
 ```
 mcp__ssh-mcp-server__list-servers
 ```
@@ -125,7 +125,7 @@ Should return the configured server.
 Use the repo's absolute `.venv/bin/python3` path, not bare `python`, so Claude Code always launches the interpreter that actually has `arxiv-mcp-server` installed.
 
 ```bash
-claude mcp add --scope local arxiv-mcp-server -- /ABSOLUTE/PATH/TO/sibyl-research-system/.venv/bin/python3 -m arxiv_mcp_server
+# Add to .mcp.json: arxiv-mcp-server entry
 ```
 
 Replace `/ABSOLUTE/PATH/TO/sibyl-research-system` with the actual clone path.
@@ -338,7 +338,7 @@ git clone https://github.com/JackKuo666/Google-Scholar-MCP-Server.git ~/.local/s
 
 **Configure**:
 ```bash
-claude mcp add --scope local google-scholar -- /ABSOLUTE/PATH/TO/sibyl-research-system/.venv/bin/python3 \
+# Add to .mcp.json: corresponding MCP server entry
   ~/.local/share/mcp-servers/Google-Scholar-MCP-Server/google_scholar_server.py
 ```
 
@@ -356,11 +356,11 @@ These are not required but enhance functionality. Configure only if the user wan
 
 | Server | Purpose | Install | Register |
 |--------|---------|---------|----------|
-| [Codex](https://github.com/openai/codex) | GPT-5.4 cross-review | `npm install -g @openai/codex` | `claude mcp add --scope local codex -- codex mcp-server` |
-| [Lark MCP](https://github.com/larksuite/lark-openapi-mcp) | Feishu Bitable/IM | `npm install -g @larksuiteoapi/lark-mcp` | `claude mcp add --scope local lark -- npx -y @larksuiteoapi/lark-mcp` |
-| [Feishu MCP](https://github.com/cso1z/Feishu-MCP) | Feishu documents | `npm install -g feishu-mcp` | `claude mcp add --scope local feishu -- feishu-mcp` |
-| [bioRxiv](https://github.com/JackKuo666/bioRxiv-MCP-Server) | Biology preprints | `.venv/bin/pip install biorxiv-mcp-server` | `claude mcp add --scope local claude_ai_bioRxiv -- .venv/bin/python3 -m biorxiv_mcp` |
-| [Playwright](https://github.com/microsoft/playwright-mcp) | Web browsing | `npm install -g @playwright/mcp` | `claude mcp add --scope local playwright -- npx -y @playwright/mcp` |
+| [Codex](https://github.com/openai/codex) | GPT-5.4 cross-review | `npm install -g @openai/codex` | `# Add to .mcp.json: corresponding MCP server entry
+| [Lark MCP](https://github.com/larksuite/lark-openapi-mcp) | Feishu Bitable/IM | `npm install -g @larksuiteoapi/lark-mcp` | `# Add to .mcp.json: corresponding MCP server entry
+| [Feishu MCP](https://github.com/cso1z/Feishu-MCP) | Feishu documents | `npm install -g feishu-mcp` | `# Add to .mcp.json: corresponding MCP server entry
+| [bioRxiv](https://github.com/JackKuo666/bioRxiv-MCP-Server) | Biology preprints | `.venv/bin/pip install biorxiv-mcp-server` | `# Add to .mcp.json: corresponding MCP server entry
+| [Playwright](https://github.com/microsoft/playwright-mcp) | Web browsing | `npm install -g @playwright/mcp` | `# Add to .mcp.json: corresponding MCP server entry
 
 See [MCP Servers Guide](mcp-servers.md) for full configuration details of each, including environment variables for Lark/Feishu.
 

@@ -7,7 +7,7 @@ import yaml
 class AgentConfig:
     """Reserved per-phase model config kept for backward compatibility.
 
-    The current Claude Code runtime routes models through `.claude/agents`
+    The current opencode runtime routes models through `.opencode/agents`
     plus `model_tiers` / `agent_tier_map`. These nested blocks are parsed and
     persisted so older configs continue to load cleanly, but they are not the
     primary runtime control surface.
@@ -21,7 +21,7 @@ class AgentConfig:
 class Config:
     workspaces_dir: Path = Path("workspaces")
     # Reserved compatibility blocks; current runtime model routing is controlled
-    # by `.claude/agents` and model_tiers/agent_tier_map instead.
+    # by `.opencode/agents` and model_tiers/agent_tier_map instead.
     ideation: AgentConfig = field(default_factory=lambda: AgentConfig(temperature=0.9))
     planning: AgentConfig = field(default_factory=AgentConfig)
     experiment: AgentConfig = field(default_factory=lambda: AgentConfig(temperature=0.3))

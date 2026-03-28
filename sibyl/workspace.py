@@ -94,8 +94,8 @@ class Workspace:
         <project_name>/
         ├── status.json
         ├── config.yaml              # project-level config overrides
-        ├── CLAUDE.md               # generated effective system+project instructions
-        ├── .claude/                # runtime links to system-managed Claude assets
+        ├── OPENCODE.md             # generated effective system+project instructions
+        ├── .opencode/              # runtime links to system-managed opencode assets
         ├── .sibyl/project/         # project-private memory + overlays
         ├── environment/
         │   └── requirements.txt
@@ -156,14 +156,14 @@ class Workspace:
         "topic.txt",
         "spec.md",
         ".gitignore",
-        "CLAUDE.md",
+        "OPENCODE.md",
     }
     _PROJECT_SCOPED_PREFIXES = (
         "shared/",
         "logs/",
         "current/",
         "iter_",
-        ".claude/",
+        ".opencode/",
         ".sibyl/",
         ".venv",
         ".git/",
@@ -486,10 +486,9 @@ class Workspace:
             "__pycache__/\n"
             ".DS_Store\n"
             ".venv/\n"
-            "CLAUDE.md\n"
-            ".claude/agents\n"
-            ".claude/skills\n"
-            ".claude/settings.local.json\n"
+            "OPENCODE.md\n"
+            ".opencode/agents\n"
+            ".opencode/skills\n"
             ".sibyl/system.json\n"
         )
         (self.root / ".gitignore").write_text(gitignore, encoding="utf-8")
@@ -718,10 +717,9 @@ class Workspace:
 
         project_memory_path = self.root / WORKSPACE_PROJECT_MEMORY
         overlays_dir = self.root / WORKSPACE_PROJECT_PROMPT_OVERLAYS
-        claude_path = self.root / "CLAUDE.md"
-        agents_link = self.root / ".claude" / "agents"
-        skills_link = self.root / ".claude" / "skills"
-        settings_link = self.root / ".claude" / "settings.local.json"
+        opencode_path = self.root / "OPENCODE.md"
+        agents_link = self.root / ".opencode" / "agents"
+        skills_link = self.root / ".opencode" / "skills"
         venv_link = self.root / ".venv"
 
         status_path = self.root / "status.json"
@@ -761,16 +759,16 @@ class Workspace:
         if legacy_status_schema:
             warnings.append("Legacy status.json schema")
 
-        claude_generated = False
-        if claude_path.exists():
+        opencode_generated = False
+        if opencode_path.exists():
             try:
-                claude_generated = claude_path.read_text(encoding="utf-8").startswith(
+                opencode_generated = opencode_path.read_text(encoding="utf-8").startswith(
                     GENERATED_CLAUDE_HEADER
                 )
             except OSError:
-                warnings.append("Unreadable CLAUDE.md")
+                warnings.append("Unreadable OPENCODE.md")
         else:
-            warnings.append("Missing CLAUDE.md")
+            warnings.append("Missing OPENCODE.md")
 
         project_overlay_count = 0
         if overlays_dir.exists():
@@ -781,20 +779,17 @@ class Workspace:
         if not project_memory_path.exists():
             warnings.append("Missing .sibyl/project/MEMORY.md")
         if not agents_link.is_symlink() and agents_link.exists():
-            warnings.append(".claude/agents is not a symlink")
+            warnings.append(".opencode/agents is not a symlink")
         if not skills_link.is_symlink() and skills_link.exists():
-            warnings.append(".claude/skills is not a symlink")
-        if not settings_link.is_symlink() and settings_link.exists():
-            warnings.append(".claude/settings.local.json is not a symlink")
+            warnings.append(".opencode/skills is not a symlink")
         if not venv_link.is_symlink() and venv_link.exists():
             warnings.append(".venv is not a symlink")
 
-        links_ok = all(
-            path.is_symlink()
-            for path in (agents_link, skills_link, settings_link, venv_link)
-        )
+        # Only agents and skills symlinks are required; settings.local.json is
+        # optional (was Claude Code-specific) and venv is best-effort.
+        links_ok = agents_link.is_symlink() and skills_link.is_symlink()
         project_layer_ok = project_memory_path.exists() and overlays_dir.exists()
-        runtime_ready = bool(system_root) and links_ok and project_layer_ok and claude_generated
+        runtime_ready = bool(system_root) and links_ok and project_layer_ok and opencode_generated
         scaffold_ready = (
             topic_exists
             and config_exists
@@ -813,12 +808,11 @@ class Workspace:
             "project_memory_path": str(project_memory_path),
             "project_memory_exists": project_memory_path.exists(),
             "project_overlay_count": project_overlay_count,
-            "claude_md_generated": claude_generated,
-            "claude_md_path": str(claude_path),
+            "opencode_md_generated": opencode_generated,
+            "opencode_md_path": str(opencode_path),
             "links": {
                 "agents": agents_link.is_symlink(),
                 "skills": skills_link.is_symlink(),
-                "settings": settings_link.is_symlink(),
                 "venv": venv_link.is_symlink(),
             },
             "topic_exists": topic_exists,

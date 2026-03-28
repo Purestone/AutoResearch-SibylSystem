@@ -147,18 +147,18 @@ fi
 echo ""
 echo "Configuring MCP servers..."
 
-# Check if claude CLI is available
-HAS_CLAUDE=false
-if command -v claude &>/dev/null; then
-    HAS_CLAUDE=true
-    echo "  Claude Code CLI detected — using 'claude mcp add --scope local' (preferred)"
+# Check if opencode CLI is available
+HAS_OPENCODE=false
+if command -v opencode &>/dev/null; then
+    HAS_OPENCODE=true
+    echo "  opencode CLI detected — using project-level .opencode/config.json (preferred)"
 fi
 
 # Warn about legacy ~/.mcp.json
 if [ -f "$HOME/.mcp.json" ]; then
     echo ""
     echo "  ⚠ Legacy ~/.mcp.json detected."
-    echo "    Consider migrating to 'claude mcp add --scope local' for repo-scoped config."
+    echo "    Consider migrating to a project-level .mcp.json for repo-scoped config."
     echo "    See docs/mcp-servers.md for details."
 fi
 
@@ -185,21 +185,51 @@ if [ -n "$SSH_HOST" ]; then
 fi
 
 echo ""
-if [ "$HAS_CLAUDE" = true ]; then
-    # Preferred: use claude mcp add --scope local
-    if [ -n "$SSH_HOST" ] && [ -n "$SSH_USER" ]; then
-        claude mcp add --scope local ssh-mcp-server -- npx -y @fangjunjie/ssh-mcp-server \
-            --host "$SSH_HOST" --port "$SSH_PORT" --username "$SSH_USER" \
-            --privateKey "$SSH_KEY" 2>/dev/null \
-            && echo "  ✓ SSH MCP configured ($SSH_USER@$SSH_HOST:$SSH_PORT)" \
-            || echo "  ✗ SSH MCP failed — run manually: claude mcp add --scope local ssh-mcp-server -- ..."
+if [ "$HAS_OPENCODE" = true ]; then
+    # opencode uses project-level .mcp.json for MCP server config
+    if [ -f ".mcp.json" ]; then
+        echo "  .mcp.json already exists — skipping MCP auto-config."
+        echo "  Verify it includes 'ssh-mcp-server' and 'arxiv-mcp-server'."
+        echo "  See docs/mcp-servers.md for reference."
     else
-        echo "  ⚠ SSH MCP skipped — configure later if using remote GPUs"
+        echo "  Creating project-level .mcp.json for opencode"
+        if [ -n "$SSH_HOST" ] && [ -n "$SSH_USER" ]; then
+            cat > .mcp.json << MCPEOF
+{
+  "mcpServers": {
+    "ssh-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@fangjunjie/ssh-mcp-server",
+               "--host", "$SSH_HOST",
+               "--port", "$SSH_PORT",
+               "--username", "$SSH_USER",
+               "--privateKey", "$SSH_KEY"]
+    },
+    "arxiv-mcp-server": {
+      "command": "$VENV_PY",
+      "args": ["-m", "arxiv_mcp_server"],
+      "env": {}
+    }
+  }
+}
+MCPEOF
+            echo "  ✓ SSH + arXiv MCP configured in .mcp.json"
+        else
+            cat > .mcp.json << MCPEOF
+{
+  "mcpServers": {
+    "arxiv-mcp-server": {
+      "command": "$VENV_PY",
+      "args": ["-m", "arxiv_mcp_server"],
+      "env": {}
+    }
+  }
+}
+MCPEOF
+            echo "  ✓ arXiv MCP configured in .mcp.json"
+            echo "  ⚠ SSH MCP skipped — add manually if using remote GPUs"
+        fi
     fi
-
-    claude mcp add --scope local arxiv-mcp-server -- "$VENV_PY" -m arxiv_mcp_server 2>/dev/null \
-        && echo "  ✓ arXiv MCP configured" \
-        || echo "  ✗ arXiv MCP failed — run manually: claude mcp add --scope local arxiv-mcp-server -- $VENV_PY -m arxiv_mcp_server"
 else
     # Fallback: create project-level .mcp.json
     if [ -f ".mcp.json" ]; then
@@ -207,7 +237,7 @@ else
         echo "  Verify it includes 'ssh-mcp-server' and 'arxiv-mcp-server'."
         echo "  See docs/mcp-servers.md for reference."
     else
-        echo "  Claude CLI not found — creating project-level .mcp.json"
+        echo "  opencode CLI not found — creating project-level .mcp.json"
         if [ -n "$SSH_HOST" ] && [ -n "$SSH_USER" ]; then
             cat > .mcp.json << MCPEOF
 {
@@ -290,19 +320,6 @@ else
     echo "    export ANTHROPIC_API_KEY=\"sk-ant-...\""
 fi
 
-if [ "$CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" = "1" ]; then
-    echo "  ✓ CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1"
-else
-    # Auto-add to shell rc if not present
-    if grep -q 'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS' "$SHELL_RC" 2>/dev/null; then
-        echo "  ⚠ CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS found in $SHELL_RC but not active in current session"
-        echo "    Run: source $SHELL_RC"
-    else
-        echo 'export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1' >> "$SHELL_RC"
-        echo "  ✓ Added CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 to $SHELL_RC"
-    fi
-fi
-
 # ---------- Summary ----------
 echo ""
 echo "=== Setup complete ==="
@@ -315,14 +332,12 @@ echo "     Codex stays disabled by default; enable it only after installing Code
 echo "  3. (Recommended) Install Google Scholar MCP for better literature search:"
 echo "       git clone https://github.com/JackKuo666/Google-Scholar-MCP-Server.git ~/.local/share/mcp-servers/Google-Scholar-MCP-Server"
 echo "       .venv/bin/pip install -r ~/.local/share/mcp-servers/Google-Scholar-MCP-Server/requirements.txt"
-echo "       claude mcp add --scope local google-scholar -- $VENV_PY ~/.local/share/mcp-servers/Google-Scholar-MCP-Server/google_scholar_server.py"
-echo "  4. (Optional) Install AI Research Skills for expert ML guidance:"
-echo "       npx @anthropic-ai/claude-code-skill install @orchestra-research/ai-research-skills"
-echo "  5. Launch Claude Code with Sibyl plugin (inside tmux):"
+echo "       # Add google-scholar entry to your .mcp.json"
+echo "  4. Launch opencode with Sibyl (inside tmux):"
 echo "       tmux new -s sibyl"
 echo "       cd \"$REPO_ROOT\""
-echo "       claude --plugin-dir \"$REPO_ROOT/plugin\" --dangerously-skip-permissions"
-echo "  6. Inside Claude Code:"
+echo "       opencode"
+echo "  5. Inside opencode:"
 echo "       /sibyl-research:init              # Create a research project"
 echo "       /sibyl-research:start <project>   # Start autonomous research"
 echo ""

@@ -26,11 +26,11 @@ def _git_is_ignored(rel_path: str) -> bool:
     return result.returncode == 0
 
 
-def test_required_claude_agents_exist():
+def test_required_opencode_agents_exist():
     for rel_path in (
-        ".claude/agents/sibyl-heavy.md",
-        ".claude/agents/sibyl-standard.md",
-        ".claude/agents/sibyl-light.md",
+        ".opencode/agents/sibyl-heavy.md",
+        ".opencode/agents/sibyl-standard.md",
+        ".opencode/agents/sibyl-light.md",
     ):
         assert (REPO_ROOT / rel_path).is_file(), rel_path
 
@@ -47,13 +47,14 @@ def test_orchestrator_skills_have_backing_skill_files():
         skill_name
         for skill_name in skill_names
         if not (REPO_ROOT / ".claude" / "skills" / skill_name / "SKILL.md").is_file()
+           and not (REPO_ROOT / ".opencode" / "skills" / skill_name / "SKILL.md").is_file()
     ]
 
     assert not missing, missing
 
 
-def test_claude_runtime_assets_are_not_gitignored():
-    assert not _git_is_ignored(".claude/agents/sibyl-standard.md")
+def test_opencode_runtime_assets_are_not_gitignored():
+    assert not _git_is_ignored(".opencode/agents/sibyl-standard.md")
     assert not _git_is_ignored(".claude/skills/sibyl-planner/SKILL.md")
     assert _git_is_ignored(".claude/settings.local.json")
 
@@ -219,7 +220,7 @@ def test_gpu_poll_docs_describe_never_stop_contract():
     """GPU poll docs must describe never-stop behavior (no pause on timeout)."""
     loop_prompt = render_control_plane_prompt("loop", workspace_path="WORKSPACE_PATH")
     required = {
-        "CLAUDE.md": ("action.gpu_poll.script", "永不放弃"),
+        "OPENCODE.md": ("action.gpu_poll.script", "永不放弃"),
     }
 
     for rel_path, snippets in required.items():
@@ -236,7 +237,7 @@ def test_experiment_wait_docs_match_runtime_contract():
     """experiment_wait polling cadence should stay aligned across docs/runtime."""
     loop_prompt = render_control_plane_prompt("loop", workspace_path="WORKSPACE_PATH")
     required = {
-        "CLAUDE.md": ("<30min→2min", "30-120min→5min", ">120min→10min", "wake_cmd", "wake_check_interval_sec"),
+        "OPENCODE.md": ("<30min→2min", "30-120min→5min", ">120min→10min", "wake_cmd", "wake_check_interval_sec"),
     }
 
     for rel_path, snippets in required.items():
@@ -271,20 +272,20 @@ def test_codex_integration_is_explicit_opt_in_everywhere():
             assert snippet in text, f"{rel_path} missing {snippet}"
 
 
-def test_setup_docs_prefer_claude_cli_mcp_registration():
+def test_setup_docs_prefer_mcp_json_registration():
     required = {
         "docs/setup-guide.md": (
-            "claude mcp add --scope local ssh-mcp-server",
-            "claude mcp add --scope local arxiv-mcp-server",
+            ".mcp.json",
+            "ssh-mcp-server",
             ".venv/bin/python3",
         ),
         "docs/mcp-servers.md": (
-            "claude mcp add --scope local ssh-mcp-server",
-            "claude mcp add --scope local arxiv-mcp-server",
+            "ssh-mcp-server",
+            "arxiv-mcp-server",
             "Manual JSON fallback",
         ),
         "docs/getting-started.md": (
-            "claude mcp add --scope local",
+            ".mcp.json",
             ".venv/bin/pip install -e .",
         ),
     }

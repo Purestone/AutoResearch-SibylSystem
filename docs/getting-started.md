@@ -67,7 +67,7 @@ python3.12 -m venv .venv
 
 ### MCP Server Setup
 
-Sibyl relies on several MCP servers. `setup.sh` configures the required ones automatically when possible. For manual setup, prefer `claude mcp add --scope local ...` so the configuration stays repo-scoped by default. See [MCP Servers](mcp-servers.md) for full installation and configuration instructions.
+Sibyl relies on several MCP servers. `setup.sh` configures the required ones automatically when possible. For manual setup, add entries to the project `.mcp.json` file so the configuration stays repo-scoped by default. See [MCP Servers](mcp-servers.md) for full installation and configuration instructions.
 
 **Required (configured by setup.sh):**
 - [SSH MCP](https://github.com/classfang/ssh-mcp-server) — remote GPU execution (`@fangjunjie/ssh-mcp-server`)
@@ -78,7 +78,7 @@ Sibyl relies on several MCP servers. `setup.sh` configures the required ones aut
   ```bash
   git clone https://github.com/JackKuo666/Google-Scholar-MCP-Server.git ~/.local/share/mcp-servers/Google-Scholar-MCP-Server
   .venv/bin/pip install -r ~/.local/share/mcp-servers/Google-Scholar-MCP-Server/requirements.txt
-  claude mcp add --scope local google-scholar -- .venv/bin/python3 ~/.local/share/mcp-servers/Google-Scholar-MCP-Server/google_scholar_server.py
+  # Add to .mcp.json: corresponding MCP server entry
   ```
 - [Codex MCP](https://github.com/openai/codex) — GPT-5.4 independent cross-review (enable with `codex_enabled: true` after installation)
 
