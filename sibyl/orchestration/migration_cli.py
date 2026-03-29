@@ -407,10 +407,9 @@ def migrate_workspace(
             ".sibyl/system.json",
             ".sibyl/project/MEMORY.md",
             ".sibyl/project/prompt_overlays",
-            "CLAUDE.md",
-            ".claude/agents",
-            ".claude/skills",
-            ".claude/settings.local.json",
+            "OPENCODE.md",
+            ".opencode/agents",
+            ".opencode/skills",
             ".venv",
         )
     )

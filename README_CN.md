@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> 受 [The AI Scientist](https://github.com/SakanaAI/AI-Scientist)、[FARS](https://analemma.ai/blog/introducing-fars/) 和 [AutoResearch](https://github.com/karpathy/autoresearch) 等先驱工作的启发，Sibyl 在此基础上更进一步，原生构建于 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 之上，充分利用其 Agent 生态——Skills、Plugins、MCP Servers 和多 Agent 团队。
+> 受 [The AI Scientist](https://github.com/SakanaAI/AI-Scientist)、[FARS](https://analemma.ai/blog/introducing-fars/) 和 [AutoResearch](https://github.com/karpathy/autoresearch) 等先驱工作的启发，Sibyl 在此基础上更进一步，原生构建于 [opencode](https://docs.anthropic.com/en/docs/claude-code) 之上，充分利用其 Agent 生态——Skills、Plugins、MCP Servers 和多 Agent 团队。
 
 [English](README.md)
 
@@ -21,7 +21,7 @@ Sibyl 真正的独特之处在于其**双循环架构**：
 
 - **全维度自主迭代** — 不只是"跑实验、写论文"。研究的每个方面都在迭代中自动优化：想法通过多 Agent 辩论不断打磨，实验通过追加 baseline 和 ablation 不断完善，论文在 6 Agent 交叉评审下不断修订，资源利用通过 GPU 调度反馈持续优化。质量门控决定何时停止或转向——无需人工介入。
 - **自进化系统** — 大多数 AI 研究工具是静态的——每次运行方式相同。Sibyl 会进化。它从每次研究迭代中提取经验（问题、成功模式、效率指标），按时间衰减和上下文相关性进行管理，并把相关改进重新注入 Agent Prompt。跨项目积累的知识让系统拥有「机构记忆」——每个项目都让所有未来项目受益。
-- **Claude Code 原生架构** — 不是 API 调用的封装。直接构建在 Claude Code 架构上（fork skills、agent teams、MCP tools），天然继承其完整生态：SSH 远程执行、多模型协作（Claude + GPT-5.4 交叉审查）、飞书云同步等。
+- **opencode 原生架构** — 不是 API 调用的封装。直接构建在 opencode 架构上（fork skills、agent teams、MCP tools），天然继承其完整生态：SSH 远程执行、多模型协作（Claude + GPT-5.4 交叉审查）、飞书云同步等。
 
 ---
 
@@ -29,15 +29,15 @@ Sibyl 真正的独特之处在于其**双循环架构**：
 
 ### 推荐：让 Claude 自动配置
 
-最快的上手方式是让 Claude Code 帮你完成全部配置。克隆仓库，在 Claude Code 中打开，然后一句话搞定：
+最快的上手方式是让 opencode 帮你完成全部配置。克隆仓库，在 opencode 中打开，然后一句话搞定：
 
 ```bash
 git clone https://github.com/Sibyl-Research-Team/sibyl-research-system.git
 cd sibyl-research-system
-claude --plugin-dir ./plugin --dangerously-skip-permissions
+opencode
 ```
 
-> ⚠️ `--dangerously-skip-permissions` 允许 Claude Code 不经确认地执行任意 shell 命令、读写文件和 MCP 调用。Sibyl 的多 Agent 自主工作流（每轮迭代数百次工具调用）强烈建议使用此标志，但应仅在专用研究机器上使用。详见[手动配置](#手动配置)中的完整说明和风险缓解建议。
+> ⚠️ `--dangerously-skip-permissions` 允许 opencode 不经确认地执行任意 shell 命令、读写文件和 MCP 调用。Sibyl 的多 Agent 自主工作流（每轮迭代数百次工具调用）强烈建议使用此标志，但应仅在专用研究机器上使用。详见[手动配置](#手动配置)中的完整说明和风险缓解建议。
 
 然后告诉 Claude：
 
@@ -45,7 +45,7 @@ claude --plugin-dir ./plugin --dangerously-skip-permissions
 
 Claude 会自动检测你的环境、安装依赖、配置 MCP 服务器、创建配置文件，只在检测不到的信息（GPU 服务器 IP、用户名等）时询问你。[配置指南](docs/setup-guide.md)是一份专为 Claude 设计的分步检查清单。
 
-配置完成后，在 Claude Code 中运行初始化命令，验证安装并准备第一个 workspace：
+配置完成后，在 opencode 中运行初始化命令，验证安装并准备第一个 workspace：
 
 ```
 /sibyl-research:init
@@ -59,10 +59,10 @@ Claude 会自动检测你的环境、安装依赖、配置 MCP 服务器、创�
 #### 环境要求
 
 - Python 3.12+、Node.js 18+
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
+- [opencode CLI](https://docs.anthropic.com/en/docs/claude-code)
 - 可 SSH 访问的 GPU 服务器
 - `ANTHROPIC_API_KEY` 环境变量
-- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 环境变量
+- 
 
 #### 1. 安装
 
@@ -76,16 +76,16 @@ chmod +x setup.sh && ./setup.sh    # 交互式：创建 venv、安装依赖、�
 
 #### 2. 配置 MCP 服务器
 
-需要两个 MCP 服务器。`setup.sh` 会交互式配置，但手动配置时更推荐使用 `claude mcp add --scope local ...`，这样配置默认只作用于当前仓库：
+需要两个 MCP 服务器。`setup.sh` 会交互式配置，手动配置时请编辑项目根目录的 `.mcp.json` 文件：
 
 ```bash
-claude mcp add --scope local ssh-mcp-server -- npx -y @fangjunjie/ssh-mcp-server \
+# 在 .mcp.json 中添加 ssh-mcp-server 条目：
   --host 你的GPU服务器IP --port 22 --username 你的用户名 --privateKey ~/.ssh/id_ed25519
 
-claude mcp add --scope local arxiv-mcp-server -- /ABSOLUTE/PATH/TO/sibyl-research-system/.venv/bin/python3 -m arxiv_mcp_server
+# 在 .mcp.json 中添加 arxiv-mcp-server 条目（参见 docs/mcp-servers.md）
 ```
 
-如果你已经通过 JSON 管理 Claude Code MCP，请更新现有配置，而不是再维护第二份配置源：
+如果你已经通过 JSON 管理 opencode MCP，请更新现有配置，而不是再维护第二份配置源：
 
 ```json
 {
@@ -130,24 +130,24 @@ export SIBYL_ROOT=/path/to/sibyl-system
 # 仓库根目录：用于初始化、全局状态查看、迁移、evolve
 cd "$SIBYL_ROOT"
 tmux new -s sibyl-admin
-claude --plugin-dir "$SIBYL_ROOT/plugin" --dangerously-skip-permissions
+opencode
 
 # 项目 workspace 根目录：真正运行该项目（推荐）
 cd "$SIBYL_ROOT/workspaces/my-project"
 tmux new -s sibyl-my-project
-claude --plugin-dir "$SIBYL_ROOT/plugin" --dangerously-skip-permissions
+opencode
 
-# 在仓库根目录启动的 Claude Code 中 —— 安装完成后运行一次：
+# 在仓库根目录启动的 opencode 中 —— 安装完成后运行一次：
 /sibyl-research:init              # 验证安装并准备第一个 workspace
 
-# 在从 workspaces/my-project 启动的 Claude Code 中：
+# 在从 workspaces/my-project 启动的 opencode 中：
 /sibyl-research:start spec.md     # 用当前 workspace 的 spec 启动新项目
 /sibyl-research:continue .        # 恢复当前 workspace
 ```
 
-> **为什么需要 `--dangerously-skip-permissions`？** Sibyl 编排 20+ 个 Agent 执行 19 个 Pipeline 阶段，每个阶段涉及数十次工具调用（文件读写、SSH 命令、MCP 服务器调用、子 Agent 生成等）。不加此标志时，Claude Code 几乎每次操作都会弹出权限确认提示，使全自主研究完全不可行——每轮迭代你需要手动确认数百次。此标志跳过所有权限确认，实现真正的端到端自动化。
+> **为什么需要 `--dangerously-skip-permissions`？** Sibyl 编排 20+ 个 Agent 执行 19 个 Pipeline 阶段，每个阶段涉及数十次工具调用（文件读写、SSH 命令、MCP 服务器调用、子 Agent 生成等）。不加此标志时，opencode 几乎每次操作都会弹出权限确认提示，使全自主研究完全不可行——每轮迭代你需要手动确认数百次。此标志跳过所有权限确认，实现真正的端到端自动化。
 >
-> **⚠️ 风险提示**：此标志允许 Claude Code **不经确认**地执行**任意** shell 命令、读写**任意**文件、发起**任意** MCP 调用。仅在你信任系统且已审查过代码的环境中使用。不要在存放敏感数据的机器上使用（项目目录外的数据可能被访问）。建议在容器或虚拟机中运行以获得额外的隔离保护。
+> **⚠️ 风险提示**：此标志允许 opencode **不经确认**地执行**任意** shell 命令、读写**任意**文件、发起**任意** MCP 调用。仅在你信任系统且已审查过代码的环境中使用。不要在存放敏感数据的机器上使用（项目目录外的数据可能被访问）。建议在容器或虚拟机中运行以获得额外的隔离保护。
 
 > **Claude 应该从哪个目录启动？** 仓库根目录只建议用于初始化和全局维护（`/sibyl-research:init`、`:status`、`:migrate`、`:evolve`）。真正跑某个研究项目时，应该从该项目的 **workspace 根目录** `workspaces/<project>/` 启动 Claude，而不是仓库根目录，也不要从 `workspaces/<project>/current` 启动。这样 Claude 会直接加载该项目专属的 `CLAUDE.md`、`.claude/` 运行时链接、Ralph prompt 和项目记忆。
 
@@ -400,7 +400,7 @@ sibyl-system/
 ├── .claude/
 │   ├── agents/                 # Agent 层级定义（heavy/standard/light）
 │   └── skills/sibyl-*/         # 36 Fork Skills（隔离上下文执行）
-├── plugin/commands/            # Claude Code 插件命令
+├── plugin/commands/            # opencode 插件命令
 ├── tools/                      # 仓库级辅助工具（不是研究项目）
 ├── workspaces/                 # 仅放 Sibyl 研究项目工作区
 ├── tests/                      # 单元测试（~800 个）
@@ -468,7 +468,7 @@ workspaces/<project>/
 ### 可选工具
 
 - [OpenAI Codex CLI](https://github.com/openai/codex) — 独立交叉审查（显式开启 `codex_enabled: true`）
-- [Ralph Loop](https://github.com/anthropics/claude-code) — 自主迭代循环（Claude Code 插件）
+- [Ralph Loop](https://github.com/anthropics/claude-code) — 自主迭代循环（opencode 插件）
 - [AI Research Skills](https://github.com/orchestra-research/ai-research-skills) — 85 个专业技能，覆盖模型微调、推理部署、评测、论文写作等。安装后，Sibyl 各 Agent 会自动发现相关技能并按需调用获取最佳实践指导。详见[配置指南](docs/setup-guide.md#step-10-ai-research-skills-optional)。
 
 ## 核心机制
@@ -512,7 +512,7 @@ workspaces/<project>/
 
 | 特性 | Sibyl Research System | [AI Scientist](https://github.com/SakanaAI/AI-Scientist) | [AutoResearch](https://github.com/karpathy/autoresearch) |
 |------|-------------|-------------|--------------|
-| 架构 | Claude Code 原生（skills, teams, MCP） | API 封装 | 单文件脚本 |
+| 架构 | opencode 原生（skills, teams, MCP） | API 封装 | 单文件脚本 |
 | Agent 数量 | 20+ 专业化 Agent | 单个 LLM | 单 Agent |
 | 创意生成 | 6 Agent 多视角辩论 | LLM 头脑风暴 | 无 |
 | 实验执行 | GPU 并行 + 拓扑排序调度 | 模板化执行 | 单 GPU 循环 |

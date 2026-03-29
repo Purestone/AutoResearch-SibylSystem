@@ -5,10 +5,9 @@ RUNTIME_GITIGNORE_LINES = (
     "__pycache__/",
     ".DS_Store",
     ".venv/",
-    "CLAUDE.md",
-    ".claude/agents",
-    ".claude/skills",
-    ".claude/settings.local.json",
+    "OPENCODE.md",
+    ".opencode/agents",
+    ".opencode/skills",
     ".sibyl/system.json",
 )
 

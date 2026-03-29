@@ -335,7 +335,7 @@ class TestBackgroundSync:
         output = json.loads(capsys.readouterr().out)
         assert output["stage"] == "planning"
         assert not (proj / ".sibyl" / "system.json").exists()
-        assert not (proj / "CLAUDE.md").exists()
+        assert not (proj / "OPENCODE.md").exists()
 
 
 # ══════════════════════════════════════════════
@@ -2137,7 +2137,7 @@ class TestMigration:
         assert payload["status"]["name"] == "dashboard-bare"
         assert payload["runtime"]["runtime_ready"] is False
         assert not (proj / ".sibyl" / "system.json").exists()
-        assert not (proj / "CLAUDE.md").exists()
+        assert not (proj / "OPENCODE.md").exists()
 
 
 # ══════════════════════════════════════════════

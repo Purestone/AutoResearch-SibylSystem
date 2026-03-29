@@ -795,7 +795,7 @@ def cli_write_ralph_prompt(
         project_name = workspace_root.name
     sync_workspace_snapshot(workspace_root)
 
-    output_file = (workspace_root / ".claude" / "ralph-prompt.txt").resolve()
+    output_file = (workspace_root / ".opencode" / "ralph-prompt.txt").resolve()
     mirror_output: Path | None = None
     if output_path:
         mirror_output = Path(output_path).expanduser()

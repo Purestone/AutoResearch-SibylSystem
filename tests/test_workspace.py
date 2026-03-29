@@ -52,14 +52,15 @@ class TestWorkspaceInit:
         assert (ws.root / ".sibyl" / "system.json").exists()
         assert (ws.root / ".sibyl" / "project" / "MEMORY.md").exists()
         assert (ws.root / ".sibyl" / "project" / "prompt_overlays").is_dir()
-        assert (ws.root / "CLAUDE.md").exists()
-        assert "## Project Memory Layer" in (ws.root / "CLAUDE.md").read_text(encoding="utf-8")
+        assert (ws.root / "OPENCODE.md").exists()
+        assert "## Project Memory Layer" in (ws.root / "OPENCODE.md").read_text(encoding="utf-8")
 
-        agents_link = ws.root / ".claude" / "agents"
-        skills_link = ws.root / ".claude" / "skills"
+        agents_link = ws.root / ".opencode" / "agents"
+        skills_link = ws.root / ".opencode" / "skills"
         assert agents_link.is_symlink()
         assert skills_link.is_symlink()
-        assert agents_link.resolve() == (Path(__file__).resolve().parents[1] / ".claude" / "agents")
+        assert agents_link.resolve() == (Path(__file__).resolve().parents[1] / ".opencode" / "agents")
+        # workspace/.opencode/skills → repo/.opencode/skills (repo-level symlink) → repo/.claude/skills
         assert skills_link.resolve() == (Path(__file__).resolve().parents[1] / ".claude" / "skills")
 
 
@@ -86,8 +87,8 @@ class TestWorkspaceOpenExisting:
 
         assert metadata["stage"] == "planning"
         assert not (proj / ".sibyl" / "system.json").exists()
-        assert not (proj / "CLAUDE.md").exists()
-        assert not (proj / ".claude").exists()
+        assert not (proj / "OPENCODE.md").exists()
+        assert not (proj / ".opencode").exists()
 
     def test_open_existing_infers_iteration_dirs_from_status(self, tmp_path):
         proj = tmp_path / "iter-proj"

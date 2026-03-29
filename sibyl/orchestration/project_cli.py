@@ -57,7 +57,7 @@ def _build_post_init_guide(
         "  ├── status.json        ← 流水线状态（自动维护）",
         "  ├── .sibyl/project/",
         "  │   └── MEMORY.md      ← 项目记忆（长期约束、偏好）",
-        "  └── .claude/           ← 系统资源 symlink（自动创建）",
+        "  └── .opencode/         ← 系统资源 symlink（自动创建）",
         "",
         "── 下一步 ────────────────────────────────────────────────────",
         "",
@@ -111,12 +111,12 @@ def _build_post_init_guide(
     step += 1
 
     lines.append(f"  {step}. 启动研究循环:")
-    lines.append("     建议先在新的 tmux pane / window 中，从该项目 workspace 根目录启动 Claude:")
+    lines.append("     建议先在新的 tmux pane / window 中，从该项目 workspace 根目录启动 opencode:")
     lines.append(f"       export SIBYL_ROOT={shlex.quote(expected_sibyl_root)}")
     lines.append(f"       cd {shlex.quote(str(ws))}")
-    lines.append("       claude --plugin-dir \"$SIBYL_ROOT/plugin\" --dangerously-skip-permissions")
+    lines.append("       opencode")
     lines.append("")
-    lines.append("     然后在该 Claude 会话中执行:")
+    lines.append("     然后在该 opencode 会话中执行:")
     lines.append("       /sibyl-research:start spec.md")
     lines.append("")
     lines.append("     如果要并行跑多个项目：每个项目各开一个 tmux pane/session，且都从各自的 workspace 根目录启动。")

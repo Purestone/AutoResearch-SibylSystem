@@ -164,7 +164,7 @@ def _script_gpu_poll(action: dict) -> str:
         f"5. On exit 1 (max {max_attempts} attempts): keep polling (永不放弃)",
     ]
     if not script:
-        lines.append("**Fallback: manual SSH polling per CLAUDE.md protocol**")
+        lines.append("**Fallback: manual SSH polling per OPENCODE.md protocol**")
     return "\n".join(lines)
 
 

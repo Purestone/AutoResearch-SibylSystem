@@ -2,9 +2,9 @@
 
 Sibyl relies on [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers for external integrations.
 
-**Preferred workflow**: register servers with `claude mcp add --scope local ...` so setup stays repo-scoped by default.
+**Preferred workflow**: add servers to the project `.mcp.json` file so setup stays repo-scoped by default.
 
-**Manual JSON fallback**: if you already manage Claude Code MCP servers through JSON, update your existing MCP config instead of creating a parallel source of truth. Common setups use project `.mcp.json`, while older setups may still use `~/.mcp.json`.
+**Manual JSON fallback**: update your existing `.mcp.json` config directly. Older setups may still use `~/.mcp.json`.
 
 ## Overview
 

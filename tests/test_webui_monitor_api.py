@@ -45,7 +45,7 @@ def workspace(tmp_path):
         "session_id": "sess-123",
         "tmux_pane": "sibyl:0.0",
     }), encoding="utf-8")
-    claude_dir = tmp_path / ".claude" / "projects" / "-tmp-workspaces"
+    claude_dir = tmp_path / ".opencode" / "projects" / "-tmp-workspaces"
     claude_dir.mkdir(parents=True)
     (claude_dir / "sess-123.jsonl").write_text(
         json.dumps({

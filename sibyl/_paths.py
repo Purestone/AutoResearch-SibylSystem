@@ -3,7 +3,9 @@ import os
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CLAUDE_RUNTIME_DIR = REPO_ROOT / ".claude"
+OPENCODE_RUNTIME_DIR = REPO_ROOT / ".opencode"
+# Backward-compat alias kept during transition
+CLAUDE_RUNTIME_DIR = OPENCODE_RUNTIME_DIR
 SYSTEM_STATE_DIR = REPO_ROOT / ".sibyl"
 SYSTEM_EVOLUTION_DIR = SYSTEM_STATE_DIR / "evolution"
 

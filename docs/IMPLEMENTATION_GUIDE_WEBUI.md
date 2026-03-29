@@ -4,20 +4,20 @@
 
 ## 项目概述
 
-Sibyl 是一个全自动学术研究系统，运行在 Claude Code CLI 中。当前纯 CLI + 文件系统架构，需要添加 Web UI 层实现三路同时交互：
+Sibyl 是一个全自动学术研究系统，运行在 opencode CLI 中。当前纯 CLI + 文件系统架构，需要添加 Web UI 层实现三路同时交互：
 
 1. **Chat UI** — CUI 风格对话界面，从 Claude 的对话 JSONL 文件实时读取
 2. **监控仪表盘** — 系统总览、Agent 活动、GPU 利用率、成本追踪
-3. **终端访问** — 通过 ttyd 暴露真实 Claude Code 终端
+3. **终端访问** — 通过 ttyd 暴露真实 opencode 终端
 
-三路指向同一个运行中的 Claude Code 进程。
+三路指向同一个运行中的 opencode 进程。
 
 ## 核心架构
 
 ```
-Claude Code Process (原生交互模式, tmux 中运行)
+opencode Process (原生交互模式, tmux 中运行)
     │
-    ├── ~/.claude/projects/<cwd>/<session>.jsonl  ← 实时增量写入
+    ├── ~/.opencode/projects/<cwd>/<session>.jsonl  ← 实时增量写入
     │       │
     │       └── ConversationWatcher (Python, watchfiles)
     │               └── WebSocket → 浏览器 Chat UI
@@ -96,7 +96,7 @@ Dashboard 测试通过 `monkeypatch.setattr(srv, "_AUTH_KEY", "")` 禁用认证�
 
 ### Claude 对话文件格式
 
-位置: `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`
+位置: `~/.opencode/projects/<encoded-cwd>/<session-id>.jsonl`
 
 每行一个 JSON 对象，**实时增量追加**。关键类型：
 
@@ -388,10 +388,10 @@ class TestConversationWatcher:
 
 **`sibyl/webui/conversation_watcher.py`**
 ```python
-"""Watches Claude Code conversation JSONL files for incremental updates.
+"""Watches opencode conversation JSONL files for incremental updates.
 
-Claude Code writes one JSON line per turn to:
-  ~/.claude/projects/<encoded-cwd>/<session-id>.jsonl
+opencode writes one JSON line per turn to:
+  ~/.opencode/projects/<encoded-cwd>/<session-id>.jsonl
 
 This watcher maintains a file offset and reads only new lines on each poll.
 Displayable types: assistant, user, system, result.
@@ -546,11 +546,11 @@ class TestSessionRegistry:
 
 **`sibyl/webui/session_registry.py`**
 ```python
-"""Maps Sibyl projects to their active Claude Code sessions.
+"""Maps Sibyl projects to their active opencode sessions.
 
 Sources:
   - <workspace>/sentinel_session.json -> session_id + tmux_pane
-  - ~/.claude/projects/<encoded-cwd>/<session_id>.jsonl -> conversation file
+  - ~/.opencode/projects/<encoded-cwd>/<session_id>.jsonl -> conversation file
 """
 import json
 import logging
@@ -693,7 +693,7 @@ class TestMessageInjector:
 
 **`sibyl/webui/message_injector.py`**
 ```python
-"""Sends messages to a running Claude Code session via tmux send-keys.
+"""Sends messages to a running opencode session via tmux send-keys.
 
 Security: allowlist-based sanitization — only safe characters permitted.
 """
@@ -713,7 +713,7 @@ def sanitize_for_tmux(message: str) -> str:
 
 
 class MessageInjector:
-    """Injects text into a Claude Code tmux session."""
+    """Injects text into an opencode tmux session."""
 
     def send(self, tmux_pane: str, message: str) -> dict:
         """Send a message to a tmux pane. Returns {"ok": bool, "error"?: str}."""

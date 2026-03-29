@@ -1,3 +1,9 @@
+> **⚠ Deprecated for opencode**: This tool relies on Claude Code's internal
+> cache files (`~/.claude/micucodeline/...`) and the Claude Code
+> `UserPromptSubmit` hook mechanism.  Neither of these exists in `opencode`.
+> The tool is kept here for reference but **will not work** with opencode.
+> Remove or ignore this directory when running the Sibyl system under opencode.
+
 # Claude Quota Guard
 
 `Claude Quota Guard` is a small Claude Code plugin that uses the official `UserPromptSubmit` hook to pause new prompts whenever your local quota snapshot says the remaining budget is below a configured threshold.

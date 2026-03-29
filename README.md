@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/Claude_Code-Native-blueviolet" alt="Claude Code Native">
 </p>
 
-> Inspired by the pioneering work of [The AI Scientist](https://github.com/SakanaAI/AI-Scientist), [FARS](https://analemma.ai/blog/introducing-fars/), and [AutoResearch](https://github.com/karpathy/autoresearch), Sibyl takes the vision further by building natively on [Claude Code](https://docs.anthropic.com/en/docs/claude-code) to fully leverage its agent ecosystem — skills, plugins, MCP servers, and multi-agent teams.
+> Inspired by the pioneering work of [The AI Scientist](https://github.com/SakanaAI/AI-Scientist), [FARS](https://analemma.ai/blog/introducing-fars/), and [AutoResearch](https://github.com/karpathy/autoresearch), Sibyl takes the vision further by building natively on [opencode](https://opencode.ai) to fully leverage its agent ecosystem — skills, MCP servers, and multi-agent teams.
 
 [中文文档](README_CN.md)
 
@@ -50,10 +50,10 @@ The fastest way to set up Sibyl is to let Claude Code do it for you. Clone the r
 git clone https://github.com/Sibyl-Research-Team/sibyl-research-system.git
 cd sibyl-research-system
 tmux new -s sibyl                                           # recommended: persistent session
-claude --plugin-dir ./plugin --dangerously-skip-permissions
+opencode
 ```
 
-> ⚠️ `--dangerously-skip-permissions` grants Claude Code unrestricted execution (shell commands, file I/O, MCP calls) without confirmation. It is strongly recommended for Sibyl's autonomous multi-agent workflow (hundreds of tool calls per iteration), but should only be used on dedicated research machines. See [Manual Setup](#manual-setup) for full details and mitigation advice.
+> ⚠️ opencode runs without permission prompts by default, giving it unrestricted execution (shell commands, file I/O, MCP calls). This is required for Sibyl's autonomous multi-agent workflow. It is strongly recommended to use a dedicated research machine or container. See [Manual Setup](#manual-setup) for full details and mitigation advice.
 
 Then tell Claude:
 
@@ -75,10 +75,9 @@ Once setup is complete, run the init command inside Claude Code to verify the in
 #### Prerequisites
 
 - Python 3.12+, Node.js 18+
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
+- [opencode CLI](https://opencode.ai)
 - GPU server with SSH access
 - `ANTHROPIC_API_KEY` environment variable
-- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` environment variable
 - **tmux** (strongly recommended) — enables persistent sessions and automatic recovery via Sentinel watchdog. Install: `brew install tmux` (macOS) / `apt install tmux` (Linux)
 
 #### 1. Install
@@ -93,13 +92,13 @@ chmod +x setup.sh && ./setup.sh    # Interactive: creates venv, installs deps, c
 
 #### 2. Configure MCP Servers
 
-Two MCP servers are required. `setup.sh` configures them interactively, but for manual setup the preferred path is `claude mcp add --scope local ...` so the configuration stays repo-scoped:
+Two MCP servers are required. `setup.sh` configures them interactively, but for manual setup you can add them to the project-level `.mcp.json` file:
 
 ```bash
-claude mcp add --scope local ssh-mcp-server -- npx -y @fangjunjie/ssh-mcp-server \
+# Add to .mcp.json — ssh-mcp-server entry:
   --host YOUR_GPU_IP --port 22 --username YOUR_USER --privateKey ~/.ssh/id_ed25519
 
-claude mcp add --scope local arxiv-mcp-server -- /ABSOLUTE/PATH/TO/sibyl-research-system/.venv/bin/python3 -m arxiv_mcp_server
+# Add to .mcp.json — arxiv-mcp-server entry (see docs/mcp-servers.md)
 ```
 
 If you already manage Claude Code MCP servers through JSON, update the existing MCP config instead of creating a second source of truth:
@@ -147,12 +146,12 @@ export SIBYL_ROOT=/path/to/sibyl-system
 # Repo root: setup, init, status, migrate, evolve
 cd "$SIBYL_ROOT"
 tmux new -s sibyl-admin
-claude --plugin-dir "$SIBYL_ROOT/plugin" --dangerously-skip-permissions
+opencode
 
 # Workspace root: actual project execution (recommended)
 cd "$SIBYL_ROOT/workspaces/my-project"
 tmux new -s sibyl-my-project
-claude --plugin-dir "$SIBYL_ROOT/plugin" --dangerously-skip-permissions
+opencode
 
 # Inside Claude Code (repo root) — run once after installation:
 /sibyl-research:init              # Verify installation and prepare first workspace
@@ -164,13 +163,13 @@ claude --plugin-dir "$SIBYL_ROOT/plugin" --dangerously-skip-permissions
 
 > **Why tmux?** Sibyl experiments can run for hours. Running inside tmux ensures the session persists through terminal disconnections. The Sentinel watchdog (auto-launched by `/sibyl-research:start`) runs in a sibling tmux pane and automatically restarts Claude Code if it crashes or goes idle — enabling truly unattended autonomous research.
 
-> **Which directory should Claude start in?** Use the **repo root** only for setup and global maintenance (`/sibyl-research:init`, `:status`, `:migrate`, `:evolve`). For an actual research run, start Claude from the target **workspace root** (`workspaces/<project>/`), not from the repo root and not from `workspaces/<project>/current`. This makes Claude load the workspace-specific `CLAUDE.md`, `.claude/` links, Ralph prompt, and project memory directly.
+> **Which directory should opencode start in?** Use the **repo root** only for setup and global maintenance (`/sibyl-research:init`, `:status`, `:migrate`, `:evolve`). For an actual research run, start opencode from the target **workspace root** (`workspaces/<project>/`), not from the repo root and not from `workspaces/<project>/current`. This makes opencode load the workspace-specific `OPENCODE.md`, `.opencode/` links, Ralph prompt, and project memory directly.
 
-> **Parallel projects:** run **one Claude session/pane per workspace root**. Example: pane A starts in `workspaces/ttt-dlm/`, pane B starts in `workspaces/dlm-improve/`. Do not reuse the same Claude pane/session across multiple projects; Sibyl now treats pane/session ownership as project-scoped.
+> **Parallel projects:** run **one opencode session/pane per workspace root**. Example: pane A starts in `workspaces/ttt-dlm/`, pane B starts in `workspaces/dlm-improve/`. Do not reuse the same opencode pane/session across multiple projects; Sibyl now treats pane/session ownership as project-scoped.
 
-> **Why `--dangerously-skip-permissions`?** Sibyl orchestrates 20+ agents across 19 pipeline stages, each involving dozens of tool calls (file I/O, SSH commands, MCP server calls, sub-agent spawning). Without this flag, Claude Code will prompt for permission on nearly every operation, making autonomous research impossible — you'd need to approve hundreds of prompts per iteration. The flag skips all permission confirmations, enabling true end-to-end automation.
+> **Why unrestricted execution?** Sibyl orchestrates 20+ agents across 19 pipeline stages, each involving dozens of tool calls (file I/O, SSH commands, MCP server calls, sub-agent spawning). opencode runs without permission prompts by default, enabling true end-to-end automation.
 >
-> **⚠️ Risks**: This flag allows Claude Code to execute **any** shell command, read/write **any** file, and make **any** MCP call without confirmation. Only use it in environments where you trust the system and have reviewed the codebase. Do not use it on machines with sensitive data outside the project directory. Consider running in a container or VM for additional isolation.
+> **⚠️ Risks**: opencode can execute **any** shell command, read/write **any** file, and make **any** MCP call without confirmation. Only use it in environments where you trust the system and have reviewed the codebase. Do not use it on machines with sensitive data outside the project directory. Consider running in a container or VM for additional isolation.
 
 </details>
 
@@ -486,7 +485,7 @@ sibyl-system/
 │   ├── error_collector.py      # Structured error capture for self-healing
 │   ├── self_heal.py            # Error routing, circuit breaker, repair orchestration
 │   └── prompts/                # 40 agent prompt templates
-├── .claude/
+├── .opencode/
 │   ├── agents/                 # Agent tier definitions (heavy/standard/light)
 │   └── skills/sibyl-*/         # 36 Fork Skills (isolated context execution)
 ├── plugin/commands/            # Claude Code plugin commands
@@ -502,7 +501,7 @@ Each research project has an independent filesystem under `workspaces/<project>/
 
 ```
 workspaces/<project>/
-├── CLAUDE.md                   # Effective runtime prompt (system + project memory)
+├── OPENCODE.md                 # Effective runtime prompt (system + project memory)
 ├── status.json                 # Orchestrator state (stage/iteration/score)
 ├── config.yaml                 # Project-level config overrides
 ├── topic.txt / spec.md         # Research topic & requirements spec
@@ -559,7 +558,7 @@ See **[MCP Servers Guide](docs/mcp-servers.md)** for installation and MCP regist
 ### Optional Tools
 
 - [OpenAI Codex CLI](https://github.com/openai/codex) — Independent cross-review (opt in with `codex_enabled: true`)
-- [Ralph Loop](https://github.com/anthropics/claude-code) — Autonomous iteration loop (Claude Code plugin)
+- [Ralph Loop](https://opencode.ai) — Autonomous iteration loop (opencode integration)
 - [AI Research Skills](https://github.com/orchestra-research/ai-research-skills) — 85 expert skills covering fine-tuning, inference, evaluation, paper writing, and more. When installed, Sibyl agents automatically discover relevant skills and invoke them on demand for best-practice guidance. See [setup guide](docs/setup-guide.md#step-10-ai-research-skills-optional) for installation.
 
 ## Key Mechanisms
