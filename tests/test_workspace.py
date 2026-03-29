@@ -60,7 +60,7 @@ class TestWorkspaceInit:
         assert agents_link.is_symlink()
         assert skills_link.is_symlink()
         assert agents_link.resolve() == (Path(__file__).resolve().parents[1] / ".opencode" / "agents")
-        # skills in .opencode/ is a symlink → ../.claude/skills, which itself resolves to .claude/skills
+        # workspace/.opencode/skills → repo/.opencode/skills (repo-level symlink) → repo/.claude/skills
         assert skills_link.resolve() == (Path(__file__).resolve().parents[1] / ".claude" / "skills")
 
 

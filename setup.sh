@@ -151,7 +151,7 @@ echo "Configuring MCP servers..."
 HAS_OPENCODE=false
 if command -v opencode &>/dev/null; then
     HAS_OPENCODE=true
-    echo "  opencode CLI detected — using project-level .opencode/config.json (preferred)"
+    echo "  opencode CLI detected — using project-level .mcp.json for MCP server config"
 fi
 
 # Warn about legacy ~/.mcp.json

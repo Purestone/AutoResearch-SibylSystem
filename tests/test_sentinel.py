@@ -137,6 +137,7 @@ class TestSentinelConfig:
         assert data["ralph_prompt_path"].endswith("/.opencode/ralph-prompt.txt")
         assert "heartbeat" in data
         assert data["heartbeat"]["stage"] == "experiment_cycle"
+        assert data["recovery"]["pending_sync_count"] == 1
         assert data["recovery"]["background_agent_required"] is True
 
     def test_detects_running_experiments(self, workspace):

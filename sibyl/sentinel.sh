@@ -148,8 +148,8 @@ restart_opencode() {
 
     if [[ -n "$session_id" ]]; then
         log "  Resuming session: ${session_id:0:12}..."
-        # NOTE: Adjust the flag if opencode uses a different session-resume convention
-        tmux send-keys -t "$TMUX_PANE" "cd $SIBYL_ROOT && opencode --session $session_id" Enter
+        # Use `opencode resume <session_id>` to restore the previous session
+        tmux send-keys -t "$TMUX_PANE" "cd $SIBYL_ROOT && opencode resume $session_id" Enter
     else
         log "  No session ID, starting fresh opencode session"
         tmux send-keys -t "$TMUX_PANE" "cd $SIBYL_ROOT && opencode" Enter

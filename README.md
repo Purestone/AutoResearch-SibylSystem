@@ -53,7 +53,7 @@ tmux new -s sibyl                                           # recommended: persi
 opencode
 ```
 
-> ⚠️ `--dangerously-skip-permissions` grants Claude Code unrestricted execution (shell commands, file I/O, MCP calls) without confirmation. It is strongly recommended for Sibyl's autonomous multi-agent workflow (hundreds of tool calls per iteration), but should only be used on dedicated research machines. See [Manual Setup](#manual-setup) for full details and mitigation advice.
+> ⚠️ opencode runs without permission prompts by default, giving it unrestricted execution (shell commands, file I/O, MCP calls). This is required for Sibyl's autonomous multi-agent workflow. It is strongly recommended to use a dedicated research machine or container. See [Manual Setup](#manual-setup) for full details and mitigation advice.
 
 Then tell Claude:
 
@@ -165,11 +165,11 @@ opencode
 
 > **Which directory should opencode start in?** Use the **repo root** only for setup and global maintenance (`/sibyl-research:init`, `:status`, `:migrate`, `:evolve`). For an actual research run, start opencode from the target **workspace root** (`workspaces/<project>/`), not from the repo root and not from `workspaces/<project>/current`. This makes opencode load the workspace-specific `OPENCODE.md`, `.opencode/` links, Ralph prompt, and project memory directly.
 
-> **Parallel projects:** run **one Claude session/pane per workspace root**. Example: pane A starts in `workspaces/ttt-dlm/`, pane B starts in `workspaces/dlm-improve/`. Do not reuse the same Claude pane/session across multiple projects; Sibyl now treats pane/session ownership as project-scoped.
+> **Parallel projects:** run **one opencode session/pane per workspace root**. Example: pane A starts in `workspaces/ttt-dlm/`, pane B starts in `workspaces/dlm-improve/`. Do not reuse the same opencode pane/session across multiple projects; Sibyl now treats pane/session ownership as project-scoped.
 
-> **Why `--dangerously-skip-permissions`?** Sibyl orchestrates 20+ agents across 19 pipeline stages, each involving dozens of tool calls (file I/O, SSH commands, MCP server calls, sub-agent spawning). Without this flag, Claude Code will prompt for permission on nearly every operation, making autonomous research impossible — you'd need to approve hundreds of prompts per iteration. The flag skips all permission confirmations, enabling true end-to-end automation.
+> **Why unrestricted execution?** Sibyl orchestrates 20+ agents across 19 pipeline stages, each involving dozens of tool calls (file I/O, SSH commands, MCP server calls, sub-agent spawning). opencode runs without permission prompts by default, enabling true end-to-end automation.
 >
-> **⚠️ Risks**: This flag allows Claude Code to execute **any** shell command, read/write **any** file, and make **any** MCP call without confirmation. Only use it in environments where you trust the system and have reviewed the codebase. Do not use it on machines with sensitive data outside the project directory. Consider running in a container or VM for additional isolation.
+> **⚠️ Risks**: opencode can execute **any** shell command, read/write **any** file, and make **any** MCP call without confirmation. Only use it in environments where you trust the system and have reviewed the codebase. Do not use it on machines with sensitive data outside the project directory. Consider running in a container or VM for additional isolation.
 
 </details>
 

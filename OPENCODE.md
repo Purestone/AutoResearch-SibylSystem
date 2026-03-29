@@ -152,21 +152,24 @@ Sibyl 的所有 agent 角色已封装为 `context: fork` skill，运行在独立
 ### Sentinel 看门狗（自动恢复）
 Sentinel 是纯 bash 看门狗脚本（`sibyl/sentinel.sh`），跑在 tmux 的 sibling pane 中，确保 opencode 中断后自动恢复。
 - **心跳文件**: `<workspace>/sentinel_heartbeat.json`（`cli_next`/`cli_record` 自动写入）
-- **Session 持久化**: `<workspace>/sentinel_session.json`（start/resume 时保存 `$OPENCODE_SESSION_ID`）
+- **Session 持久化**: `<workspace>/sentinel_session.json`（start/resume 时通过 `cli_sentinel_session()` 写入 session_id）
 - **停止信号**: `<workspace>/sentinel_stop.json`（stop 时写入 `{"stop": true}`）
-- **检测逻辑**: 每 2 分钟检查 Claude 进程 + 子进程活跃度 + 心跳新鲜度 + 实验状态
-- **子进程检测**: Claude 有活跃子进程（bash/sleep/ssh）时视为正常工作中，不干预（避免误判 `bash sleep 600`）
+- **检测逻辑**: 每 2 分钟检查 opencode 进程 + 子进程活跃度 + 心跳新鲜度 + 实验状态
+- **子进程检测**: opencode 有活跃子进程（bash/sleep/ssh）时视为正常工作中，不干预（避免误判 `bash sleep 600`）
 - **唤醒策略**:
   - 进程不存在 → `opencode resume <session_id>` + `/sibyl-research:continue`
   - 进程在但心跳 >5min 且无子进程 → 注入 `/sibyl-research:continue`
 - **退避机制**: 连续 3 次唤醒失败后暂停 6 分钟
 - **CLI**: `cli_sentinel_session(workspace, session_id, tmux_pane)`, `cli_sentinel_config(workspace)`
-- **隔离约束**: Session ID 和 tmux pane 都按规范化后的项目根路径登记；一个 Claude pane/session 只能归属一个项目
+- **隔离约束**: Session ID 和 tmux pane 都按规范化后的项目根路径登记；一个 opencode pane/session 只能归属一个项目
 - **启动**: `/sibyl-research:start` 和 `/sibyl-research:resume` 自动在 tmux 中启动
 - **停止**: `/sibyl-research:stop` 写入停止信号
 
-### Plugin Hooks（后台进程自动化）
-Plugin 级 hook（`plugin/hooks/hooks.json`）将后台进程管理从 LLM 下沉到确定性脚本，零 token 消耗。
+### Plugin Hooks（⚠ 已弃用 — 仅限 Claude Code）
+
+> **注意**: 以下 Plugin hook 架构依赖 Claude Code 的 `PostToolUse`/`SessionStart`/`Stop` 事件，**opencode 不支持此 hook 系统**。相关脚本保留在 `plugin/hooks/` 供参考，但在 opencode 环境下不会自动触发。后台 daemon（实验监控等）须从 tmux 手动启动，或通过 `experiment_monitor.script` 在 action 执行时显式调用。详见 `plugin/README.md`。
+
+原 Plugin 级 hook 设计（`plugin/hooks/hooks.json`）将后台进程管理从 LLM 下沉到确定性脚本，零 token 消耗。
 
 | Hook 事件 | 脚本 | 职责 |
 |---|---|---|

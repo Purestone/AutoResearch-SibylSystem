@@ -29,6 +29,18 @@ The `plugin/hooks/` scripts relied on Claude Code's `PostToolUse` and
 mechanism.  Background daemons (e.g., experiment monitoring) must be launched
 manually or via tmux rather than through agent hooks.
 
+To replicate the experiment monitoring daemon that was previously auto-launched
+via the `PostToolUse(Bash)` hook, start it manually in a separate tmux pane:
+
+```bash
+# In a spare tmux pane, from your workspace directory:
+bash plugin/hooks/scripts/on-bash-complete.sh experiment_monitor
+```
+
+Or, when the orchestrator returns an `experiment_wait` action, it embeds the
+daemon launch command in `action.experiment_monitor.script` — execute that
+script directly to start monitoring.
+
 ## Commands reference
 
 The markdown files in `plugin/commands/` still contain useful prompt
