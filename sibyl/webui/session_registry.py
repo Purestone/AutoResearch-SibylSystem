@@ -1,4 +1,4 @@
-"""Map Sibyl projects to Claude Code sessions and conversation logs."""
+"""Map Sibyl projects to opencode sessions and conversation logs."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ class SessionRegistry:
 
     def __init__(self, workspaces_dir: Path):
         self.workspaces_dir = Path(workspaces_dir)
-        self._claude_home = Path(os.environ.get("HOME", "~")).expanduser() / ".claude"
+        self._opencode_home = Path(os.environ.get("HOME", "~")).expanduser() / ".opencode"
 
     def _read_session_file(self, sentinel_path: Path) -> dict[str, Any] | None:
         try:
@@ -28,7 +28,7 @@ class SessionRegistry:
         return payload
 
     def _find_conversation_jsonl(self, session_id: str) -> Path | None:
-        projects_dir = self._claude_home / "projects"
+        projects_dir = self._opencode_home / "projects"
         if not projects_dir.exists():
             return None
         for candidate in projects_dir.rglob(f"{session_id}.jsonl"):

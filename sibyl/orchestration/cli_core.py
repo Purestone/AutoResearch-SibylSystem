@@ -139,7 +139,7 @@ def _load_workspace_sentinel_state(workspace_root: Path) -> dict:
     should_keep_running = (
         not status.stop_requested and (has_running or status.stage not in {"", "init", "done"})
     )
-    ralph_prompt_path = str((workspace_root / ".claude" / "ralph-prompt.txt").resolve())
+    ralph_prompt_path = str((workspace_root / ".opencode" / "ralph-prompt.txt").resolve())
     recovery_state = _load_recovery_state(workspace_root)
     return {
         "workspace_path": str(workspace_root),
@@ -598,7 +598,7 @@ def cli_sentinel_session(
         "session_id": session_id,
         "tmux_pane": tmux_pane,
         "saved_at": time.time(),
-        "ralph_prompt_path": str((workspace_root / ".claude" / "ralph-prompt.txt").resolve()),
+        "ralph_prompt_path": str((workspace_root / ".opencode" / "ralph-prompt.txt").resolve()),
     }
 
     with _sentinel_registry_lock():

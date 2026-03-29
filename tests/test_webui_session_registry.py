@@ -11,8 +11,8 @@ from sibyl.webui.session_registry import SessionRegistry
 def registry(tmp_path, monkeypatch):
     ws_dir = tmp_path / "workspaces"
     ws_dir.mkdir()
-    claude_dir = tmp_path / ".claude"
-    (claude_dir / "projects" / "-tmp-workspaces").mkdir(parents=True)
+    opencode_dir = tmp_path / ".opencode"
+    (opencode_dir / "projects" / "-tmp-workspaces").mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path))
     return SessionRegistry(ws_dir)
 
@@ -48,8 +48,9 @@ class TestSessionRegistry:
         assert info["session_id"] == "sess-legacy"
 
     def test_find_conversation_jsonl(self, registry, tmp_path):
-        claude_proj_dir = tmp_path / ".claude" / "projects" / "-tmp-workspaces"
-        (claude_proj_dir / "sess-abc-123.jsonl").write_text('{"type":"system"}\n', encoding="utf-8")
+        opencode_proj_dir = tmp_path / ".opencode" / "projects" / "-tmp-workspaces"
+        opencode_proj_dir.mkdir(parents=True, exist_ok=True)
+        (opencode_proj_dir / "sess-abc-123.jsonl").write_text('{"type":"system"}\n', encoding="utf-8")
         project = tmp_path / "workspaces" / "proj-a"
         project.mkdir()
         (project / "status.json").write_text('{"stage": "planning"}', encoding="utf-8")
